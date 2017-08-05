@@ -19,7 +19,6 @@ class IsolationTest(unittest.TestCase):
 		self.player1 = game_agent.MinimaxPlayer(search_depth = 2)
 		self.player2 = game_agent.MinimaxPlayer(search_depth = 2)
 		self.game = isolation.Board(self.player1, self.player2)
-	
 
 	def minimax_player_setup(self):
 		# place player 1 on the board at row 2, column 3, then place player 2 on
@@ -69,13 +68,15 @@ class IsolationTest(unittest.TestCase):
 		self.minimax_player_setup()	
 		print(self.game.to_string())
 		
+		time_left = lambda:1000
+		
 		# Evaluate Minimax function
-		mv = self.player1.get_move(self.game, 1000)
+		mv = self.player1.get_move(self.game, time_left)
 # 		assert(self.game.move_is_legal(mv),'Illegal Move Selected')
 		self.game.apply_move(mv);
 		print(self.game.to_string())
 
-		mv = self.player2.get_move(self.game, 1000)
+		mv = self.player2.get_move(self.game, time_left)
 # 		assert(self.game.move_is_legal(mv),'Illegal Move Selected')
 		self.game.apply_move(mv);
 		print(self.game.to_string())
@@ -87,7 +88,6 @@ class IsolationTest(unittest.TestCase):
 		print("\nWinner: {}\nOutcome: {}".format(winner, outcome))
 		print(self.game.to_string())
 		print("Move history:\n{!s}".format(history))
-
 		
 
 if __name__ == '__main__':

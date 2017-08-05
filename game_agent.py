@@ -219,7 +219,6 @@ class MinimaxPlayer(IsolationPlayer):
 		if self.time_left() < self.TIMER_THRESHOLD:
 			raise SearchTimeout()
 			
-			
 		# Minimax Algorithm
 		# Maximize utility for the current state
 		legal_moves = game.get_legal_moves(self)
@@ -335,10 +334,25 @@ class AlphaBetaPlayer(IsolationPlayer):
 			Board coordinates corresponding to a legal move; may return
 			(-1, -1) if there are no available legal moves.
 		"""
+		
 		self.time_left = time_left
+
+		# Initialize the best move so that this function returns something
+		# in case the search fails due to timeout
+		best_move = (-1, -1)
 
 		# TODO: finish this function!
 		raise NotImplementedError
+		try:
+			# The try/except block will automatically catch the exception
+			# raised when the timer is about to expire.
+			return self.alphabeta(game, self.search_depth)
+
+		except SearchTimeout:
+			pass  # Handle any actions required after timeout as needed
+
+		# Return the best move from the last completed search iteration
+		return best_move
 
 	def alphabeta(self, game, depth, alpha=float("-inf"), beta=float("inf")):
 		"""Implement depth-limited minimax search with alpha-beta pruning as
@@ -384,9 +398,113 @@ class AlphaBetaPlayer(IsolationPlayer):
 				pseudocode) then you must copy the timer check into the top of
 				each helper function or else your agent will timeout during
 				testing.
+		
+		Pseudp-Code
+		function ALPHA-BETA-SEARCH(state) returns an action
+ 			v ← MAX-VALUE(state, −∞, +∞)
+ 			return the action in ACTIONS(state) with value v	  
 		"""
+		# Implement Timer for Competition Agents
 		if self.time_left() < self.TIMER_THRESHOLD:
 			raise SearchTimeout()
-
-		# TODO: finish this function!
-		raise NotImplementedError
+			
+		# Setup Alpha-Beta
+		alpha = -float("inf")
+				
+		# Default Return
+		v = float("-inf")
+		
+		# Generate Legal Moves for the Player
+		legal_moves = game.get_legal_moves(self)
+		if len(legal_moves) == 0:
+			return (-1,-1)
+		
+		best_move = legal_moves[0]
+		best_score = v
+		
+		# Maximize the results of a min-node
+		for lm in legal_moves:
+			# Expand the minimax tree to the next level
+			forcast_game = game.forecast_move(lm)
+			v = max([v, self.ab_min_score(forcast_game, depth - 1, alpha)]);
+			if v > best_score:
+				best_move = lm
+				best_score = v
+			alpha = max([alpha, v])
+		return best_move
+	
+	def ab_max_score(self, game, depth = 0 , alpha=float("-inf"), beta=float("inf")):
+		# Evaluate the max-value for the game using assumes alpha-beta pruning.
+		# ----------------------------------------------
+		# function MAX-VALUE(state, α, β) returns a utility value
+		#  if TERMINAL-TEST(state) then return UTILITY(state)
+		#  v ← −∞
+		#  for each a in ACTIONS(state) do
+		#    v ← MAX(v, MIN-VALUE(RESULT(state, a), α, β))
+		#    if v ≥ β then return v
+		#    α ← MAX(α, v)
+		#  return v
+		# ----------------------------------------------		
+		if self.time_left() < self.TIMER_THRESHOLD:
+			raise SearchTimeout()
+		
+		if depth == 0:
+			# Evaluate the result on the current state.
+			return self.score(game, self)
+		else:
+			# Default Return
+			v = float("-inf")
+			
+			# Generate Legal Moves for the Player
+			legal_moves = game.get_legal_moves(self)
+			
+			if len(legal_moves) == 0:
+				return v
+			
+			# Maximize the results of a min-node
+			for lm in legal_moves:
+				# Expand the minimax tree to the next level
+				forcast_game = game.forecast_move(lm)
+				v = max([v, self.ab_min_score(forcast_game, depth - 1, alpha, beta)]);
+				if v > beta:
+					return v
+				alpha = max([alpha, v])
+			return v
+		
+	def ab_min_score(self, game, depth=0, alpha=float("-inf"), beta=float("inf")):
+		# Evaluate the min-value for the game using assumes alpha-beta pruning.
+		# ----------------------------------------------
+		# function MIN-VALUE(state, α, β) returns a utility value
+		#  if TERMINAL-TEST(state) then return UTILITY(state)
+		#  v ← +∞
+		#  for each a in ACTIONS(state) do
+		#    v ← MIN(v, MAX-VALUE(RESULT(state, a), α, β))
+		#    if v ≤ α then return v
+		#    β ← MIN(β, v)
+		#  return v
+		# ----------------------------------------------
+		if self.time_left() < self.TIMER_THRESHOLD:
+			raise SearchTimeout()
+		
+		if depth == 0:
+			# Evaluate the result on the current state.
+			return self.score(game, self)
+		else:
+			# Default Return
+			v = float("inf")
+			
+			# Generate Legal Moves for the Player
+			legal_moves = game.get_legal_moves(self)
+			
+			if len(legal_moves) == 0:
+				return v
+			
+			# Maximize the results of a min-node
+			for lm in legal_moves:
+				# Expand the minimax tree to the next level
+				forcast_game = game.forecast_move(lm)
+				v = min([v, self.ab_max_score(forcast_game, depth - 1, alpha, beta)]);
+				if v <= alpha:
+					return v
+				beta = min([beta, v])	
+			return v
