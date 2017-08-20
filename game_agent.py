@@ -3,7 +3,7 @@ test your agent's strength against a set of known agents using tournament.py
 and include the results in your report.
 """
 import random
-from sample_players import improved_score, center_score
+#from sample_players import improved_score, center_score
 
 class SearchTimeout(Exception):
 	"""Subclass base exception for code clarity. """
@@ -12,16 +12,87 @@ class SearchTimeout(Exception):
 
 # Pre-calculate the first and second order moves
 directions = [(-2, -1), (-2, 1), (-1, -2), (-1, 2),
-                      (1, -2), (1, 2), (2, -1), (2, 1)]   
+            	(1, -2), (1, 2), (2, -1), (2, 1)]   
 second_order_directions = [(d1r + d2r, d1c + d2c) 
 	for d1r, d1c in directions 
 	for d2r, d2c in directions
 	if d1r != -d2r and d1c != -d2c]    
 
-def custom_score(game, player):
-	return float(improved_score(game, player) + 0.5 * custom_score_4(game, player))
+""" 
+------------------------------------------------
+Default Heuristic Functions:
+Functions are included for fusion purposes in the custom_score_4 implementation.
+Submission script will fail with import statement (commented in header).
+------------------------------------------------
+"""
 
-def custom_score_4(game, player):
+def improved_score(game, player):
+    """The "Improved" evaluation function discussed in lecture that outputs a
+    score equal to the difference in the number of moves available to the
+    two players.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    own_moves = len(game.get_legal_moves(player))
+    opp_moves = len(game.get_legal_moves(game.get_opponent(player)))
+    return float(own_moves - opp_moves)
+
+
+def center_score(game, player):
+    """Outputs a score equal to square of the distance from the center of the
+    board to the position of the player.
+
+    This heuristic is only used by the autograder for testing.
+
+    Parameters
+    ----------
+    game : `isolation.Board`
+        An instance of `isolation.Board` encoding the current state of the
+        game (e.g., player locations and blocked cells).
+
+    player : hashable
+        One of the objects registered by the game object as a valid player.
+        (i.e., `player` should be either game.__player_1__ or
+        game.__player_2__).
+
+    Returns
+    ----------
+    float
+        The heuristic value of the current game state
+    """
+    if game.is_loser(player):
+        return float("-inf")
+
+    if game.is_winner(player):
+        return float("inf")
+
+    w, h = game.width / 2., game.height / 2.
+    y, x = game.get_player_location(player)
+    return float((h - y)**2 + (w - x)**2)
+# ------------------------------------------------
+
+# Custom 1: Second Order moves via Direct Evaluation
+def custom_score(game, player):
 	"""Calculate the heuristic value of a game state from the point of view
 	of the given player. This heuristic sorce the game state based upon the number 
 	of 2nd order moves available to a player. 
@@ -43,18 +114,22 @@ def custom_score_4(game, player):
 	float
 		The number of moves available to a player after then next move.
 	"""
+	# Win/Loss Check
 	if game.is_loser(player):
 		return float("-inf")
 
 	if game.is_winner(player):
 		return float("inf")
 	
+	# Generate score for Player and Opponent
 	player_score = getSecondOrderMoveCount(game, player)
 	opponent_score = getSecondOrderMoveCount(game, game.get_opponent(player))
 	return player_score - opponent_score
 
 def getSecondOrderMoveCount(game, player):
-	""" Evaluate the number of second order moves available to a player.
+	""" Helper function
+	Evaluate the number of second order moves available
+	to a player. The specific moves are pre-calulated.
 	"""
 	r,c = game.get_player_location(player)	
 	valid_move_count = sum([game.move_is_legal((r + dr, c + dc)) 
@@ -62,14 +137,17 @@ def getSecondOrderMoveCount(game, player):
 	if valid_move_count:
 		return float(valid_move_count)
 	else:
+		# No moves are available
 		return float("-inf")
-
+		
+# Custom 2: Second Order moves via ‘Full’ Evaluation
 def custom_score_2(game, player):
 	"""Calculate the heuristic value of a game state from the point of view
 	of the given player. This heuristic sorce the game state based upon the number 
 	of 2nd order moves available to a player. 
 	
-	This function forcasts the game state after execution of each move.
+	This function forcasts the game state after execution of each move by evaluating
+	a sub-tree of game states.
 
 	Parameters
 	----------
@@ -87,6 +165,7 @@ def custom_score_2(game, player):
 		The number of moves available to a player after then next move.
 	"""
 	
+	# Win/Loss Check
 	if game.is_loser(player):
 		return float("-inf")
 
@@ -94,26 +173,29 @@ def custom_score_2(game, player):
 		return float("inf")
 	
 	score = 0
-	# Count the second order number of move available.
-	# For the current player's legal moves:
-	#	- Copy Board and apply legal move
-	#	- For each opponent legal move:
-	#		- Copy Board and apply legal move:
-	#			- Count legal moves for player
+	
+	""" Count the second order number of move available.
+	For each of the current player's legal moves:
+		- Forcast a move, and 
+		- Count legal moves for player.
+		
+	Note: a Null move is applied to the other player after forcasting.
+	"""
 	
 	player_pos = game.get_player_location(player)
 	opponent_pos = game.get_player_location(game.get_opponent(player))
 	
 	own_moves = game.get_legal_moves(player)
 	opp_moves = game.get_legal_moves(game.get_opponent(player))
-
+	
+	# Player Score
 	for mv in own_moves:
 		play_pred_game = game.forecast_move(mv)
 		score += improved_score(play_pred_game, player)
 		if score == float("inf") or score == float("-inf"):
 			return score
-	
-	# Apply Null move to switch players
+			
+	# Opponent Score
 	game_opp = game.forecast_move(player_pos)
 	for mv in opp_moves:
 		opp_pred_game = game_opp.forecast_move(mv)
@@ -123,14 +205,17 @@ def custom_score_2(game, player):
 	
 	return float(score)
 
-''' Custom Heuristic 3: Early-game moves '''
+# Custom Heuristic 3: Early-game moves
 def is_reflectable_pos(pos):
+	""" Helper function to evaluate if position can be 'reflected' by an
+	opponent at the center
+	"""
 	return pos in [(2,1),(2,1),(4,5),(5,4),(4,1),(1,4),(5,2),(2,5)]
-
 
 def custom_score_3(game, player):
 	"""Calculate the heuristic value of a game state from the point of view
-	of the given player.
+	of the given player. This heuristic expands custom_score by inclusion of 
+	'early game' mechanics for move selection and centering of position.
 
 	Note: this function should be called from within a Player instance as
 	`self.score()` -- you should not need to call this function directly.
@@ -165,8 +250,41 @@ def custom_score_3(game, player):
 				return float("-inf")
 	elif game.move_count < 10:
 		return custom_score(game, player) + (10 - game.move_count) * center_score(game, player)
-	
-	return custom_score(game, player)
+	else:
+		return custom_score(game, player)
+		
+# Custom 4: Fusion	
+def custom_score_4(game, player):
+	"""Calculate the heuristic value of a game state from the point of view
+	of the given player. This heuristic implements a fusion of three 
+	heuristic functions:
+		- improved_score: calculation of the relative number of 'first 
+			order' moves.
+		- custom_score: calculation of the relative number of 'second 
+			order' moves.
+		- center_score: value favoring centering.
+
+	Note: this function should be called from within a Player instance as
+	`self.score()` -- you should not need to call this function directly.
+
+	Parameters
+	----------
+	game : `isolation.Board`
+		An instance of `isolation.Board` encoding the current state of the
+		game (e.g., player locations and blocked cells).
+
+	player : object
+		A player instance in the current game (i.e., an object corresponding to
+		one of the player objects `game.__player_1__` or `game.__player_2__`.)
+
+	Returns
+	-------
+	float
+		The heuristic value of the current game state to the specified player.
+	"""
+	return float(improved_score(game, player)
+			 + 0.5 * custom_score(game, player)
+			 + 0.5 * center_score(game, player))
 
 class IsolationPlayer:
 	"""Base class for minimax and alphabeta agents -- this class is never
@@ -195,7 +313,6 @@ class IsolationPlayer:
 		self.score = score_fn
 		self.time_left = None
 		self.TIMER_THRESHOLD = timeout
-
 
 class MinimaxPlayer(IsolationPlayer):
 	"""Game-playing agent that chooses a move using depth-limited minimax
@@ -364,8 +481,7 @@ class MinimaxPlayer(IsolationPlayer):
 				move_score = self.max_score(forcast_game, depth - 1)
 				if move_score < best_score:
 					best_score = move_score
-			return best_score
-		
+			return best_score	
 
 class AlphaBetaPlayer(IsolationPlayer):
 	"""Game-playing agent that chooses a move using iterative deepening minimax

@@ -1,7 +1,9 @@
 Andrew Sutton
 Artificial Intelligence (Term 1)
 August 20, 2017
+
 Heuristic Analysis
+
 	This project developed and tested multiple heuristic ‘value’ functions for an AI agent to play the modified ‘Isolation’ game. Isolation is played on an 8 x 8 chess board with one piece per player. On each move, a player must move their piece to a never occupied square. In the game played during the development of this agent, the piece moves as a knight.
 Several heuristic functions were developed to address this challenge. The best performing heuristic function is Custom 1, which approximates the number of open moves two turns ahead. This heuristic is found to beat the overall win-rate of the AB_Improved implementation, however in head-to-head testing the AB_Improved surpasses the Custom 1 algorithm. 
 
@@ -37,10 +39,23 @@ Below is a summary of the achieved performance for the different implementations
            Win Rate:      59.4%        64.4%        47.5%        56.9%    
 
 Discussion:
-	As is demonstrated in the results, the Custom 1 heuristic function performance exceeded the ‘improved_score’ function with a win rate of 64.4% to 59.4% overall. However, in head-to-head between the AB_Improved and AB_Custom agent, which implements the Custom 1 heuristic function, the AB_Improved wins 22 - 18. This is attributed to the inter-play between algorithm assumptions: the Custom 1 algorithm makes an assumption relating the the availability of first order moves. 
+	As is demonstrated in the results, the Custom 1 heuristic function performance exceeded the ‘improved_score’ function with a win rate of 64.4% to 59.4% overall. Thus, the Custom 1 metric can be applied to general games. However, in head-to-head between the AB_Improved and AB_Custom agent, which implements the Custom 1 heuristic function, the AB_Improved wins 22 - 18. This is attributed to the inter-play between algorithm assumptions: the Custom 1 algorithm makes an assumption relating the the availability of first order moves for a player. Since the improved_score acts exclusively on the first-order basis, it is likely that the improved_score has an advantage in head-to-head play.
 
 	Note, the Custom 1 agent significantly out-performs the Custom 2 agent, whilst implementing the say underlying value function (the number of second order moves). This indicates that the increased accuracy of the Custom 2 function is not offset by the computational burden: the Custom 1 agent can search to a greater depth due to the reduced compute burden.
 	
-	The Custom 3 achieves intermediate performance, indicating that the ‘Centering’ strategy does not contribute significantly to the performance of the Agent in the general.
+	The Custom 3 achieves intermediate performance, indicating that the ‘Centering’ strategy does not contribute significantly to the performance of the Agent in the general. This is likely a result of the move randomization applied for the opening move in the tournament.py script.
 
-	Time permitting, this result suggests that a strategy may be to implement a fusion of the ‘improved_score’ and Custom 1 functions. The fusion must necessarily be computationally efficient.
+	To determine the impact of the Custom 1 assumptions, an additional heuristic Custom 4 was implemented as a fusion of Custom 1, improved_score and center_score as:
+	custom_4 = improved_score(game, player)
+			 + 0.5 * custom_score(game, player)
+			 + 0.5 * center_score(game, player)
+
+The resulting heuristic was added to a simulation against the AB_Improved agent for the following result:
+
+ Match #   Opponent    AB_Improved   AB_Custom   AB_Custom_2  AB_Custom_3  AB_Custom_4 
+                        Won | Lost   Won | Lost   Won | Lost   Won | Lost   Won | Lost 
+    1     AB_Improved   20  |  20    19  |  21    10  |  30    17  |  23    20  |  20  
+--------------------------------------------------------------------------
+           Win Rate:      50.0%        47.5%        25.0%        42.5%        50.0%   
+
+In short, it appears that the fusion selected did not provide a statistically significant advantage. Similarly, the AB_Improved and AB_custom algorithms remain close in performance. With further efforts, the specific weighting used in the score fusion could be optimized using iterative techniques.
