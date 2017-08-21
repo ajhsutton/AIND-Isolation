@@ -1,11 +1,19 @@
 Andrew Sutton
 Artificial Intelligence (Term 1)
-August 20, 2017
+August 20, 2017 (Submission 2)
 
 Heuristic Analysis
 
 	This project developed and tested multiple heuristic ‘value’ functions for an AI agent to play the modified ‘Isolation’ game. Isolation is played on an 8 x 8 chess board with one piece per player. On each move, a player must move their piece to a never occupied square. In the game played during the development of this agent, the piece moves as a knight.
 Several heuristic functions were developed to address this challenge. The best performing heuristic function is Custom 1, which approximates the number of open moves two turns ahead. This heuristic is found to beat the overall win-rate of the AB_Improved implementation, however in head-to-head testing the AB_Improved surpasses the Custom 1 algorithm. 
+
+From the heuristic functions developed, the Custom 1 value function, should be selected as it:
+	1. Has the highest performance,
+	2. Outperforms the AB_Improved agent,
+	3. Is computationally fastest / simplest, and
+	4. Searches to a deeper level.
+
+Heuristic Functions
 
 Custom 1: Second Order moves via Direct Evaluation
 	This heuristic function calculates the number of spaces available to a piece after two moves, compared to the same metric for the opponent. This metric will be correlated with the number of spaces available to each player, and provides additional information about the game state that is not captured by the ‘improved_score’ value function.
@@ -39,11 +47,18 @@ Below is a summary of the achieved performance for the different implementations
            Win Rate:      59.4%        64.4%        47.5%        56.9%    
 
 Discussion:
-	As is demonstrated in the results, the Custom 1 heuristic function performance exceeded the ‘improved_score’ function with a win rate of 64.4% to 59.4% overall. Thus, the Custom 1 metric can be applied to general games. However, in head-to-head between the AB_Improved and AB_Custom agent, which implements the Custom 1 heuristic function, the AB_Improved wins 22 - 18. This is attributed to the inter-play between algorithm assumptions: the Custom 1 algorithm makes an assumption relating the the availability of first order moves for a player. Since the improved_score acts exclusively on the first-order basis, it is likely that the improved_score has an advantage in head-to-head play.
-
-	Note, the Custom 1 agent significantly out-performs the Custom 2 agent, whilst implementing the say underlying value function (the number of second order moves). This indicates that the increased accuracy of the Custom 2 function is not offset by the computational burden: the Custom 1 agent can search to a greater depth due to the reduced compute burden.
+	As is demonstrated in the results, the Custom 1 heuristic function performance exceeded the ‘improved_score’ function with a win rate of 64.4% to 59.4% overall. Thus, the Custom 1 metric can be applied to general games. The Custom 1 agent significantly out-performs the Custom 2 agent, whilst implementing the a comparable underlying value function (the number of second order moves). This indicates that the increased accuracy of the Custom 2 function is not offset by the computational burden: the Custom 1 agent can search to a greater depth due to the reduced compute burden.
 	
-	The Custom 3 achieves intermediate performance, indicating that the ‘Centering’ strategy does not contribute significantly to the performance of the Agent in the general. This is likely a result of the move randomization applied for the opening move in the tournament.py script.
+	By comparison, the Custom 3 achieves intermediate performance, indicating that the ‘Centering’ strategy does not contribute significantly to the performance of the Agent in  general game play. This is likely a result of the move randomization applied for the opening move in the tournament.py script.
+
+Thus, from the heuristic functions developed, the Custom 1 value function, should be selected as it:
+	1. Has the highest performance out of the three custom heuristic functions,
+	2. Outperforms the AB_Improved agent with a 64.4% to 59.4% overall win ratio,
+	3. Is computationally faster than the Custom 2 and Custom 3 value functions, and
+	4. Searches to a deeper level with similar burden at the improved_score metric.
+	
+Head-to-head Analysis
+	In head-to-head between the AB_Improved and AB_Custom agent, which implements the Custom 1 heuristic function, the AB_Improved wins 22 - 18. This is attributed to the inter-play between algorithm assumptions: the Custom 1 algorithm makes an assumption relating the the availability of first order moves for a player. Since the improved_score acts exclusively on the first-order basis, it is likely that the improved_score has an advantage in head-to-head play.
 
 	To determine the impact of the Custom 1 assumptions, an additional heuristic Custom 4 was implemented as a fusion of Custom 1, improved_score and center_score as:
 	custom_4 = improved_score(game, player)
